@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Web.Interfaces;
+using Web.Services;
 
 namespace Web
 {
@@ -31,9 +33,11 @@ namespace Web
         {
             services.AddDbContext<MarketContext>(options => options.UseNpgsql(
                 Configuration.GetConnectionString("MarketContext")));
+
             services.AddDbContext<AppIdentityDbContext>(options =>
                 options.UseNpgsql(
                     Configuration.GetConnectionString("MarketIdentity")));
+
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
@@ -41,6 +45,9 @@ namespace Web
                 .AddEntityFrameworkStores<AppIdentityDbContext>();
 
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+
+            services.AddScoped<IHomeViewModelService, HomeViewModelService>();  // Ne zaman IHomeViewModelService istenirse ona HomeViewModelService ver
+
             services.AddControllersWithViews();
         }
 

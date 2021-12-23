@@ -10,5 +10,7 @@
         public decimal Price { get; set; }
 
         public string PictureUri { get; set; }
+
+        public string PriceText => "$" + Price.ToString("n2");
     }
 }
