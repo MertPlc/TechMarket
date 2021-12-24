@@ -1,5 +1,7 @@
 ﻿using ApplicationCore.Entities;
 using ApplicationCore.Interfaces;
+using ApplicationCore.Specifications;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq;
 using System.Threading.Tasks;
 using Web.Interfaces;
@@ -10,16 +12,27 @@ namespace Web.Services
     public class HomeViewModelService : IHomeViewModelService
     {
         private readonly IRepository<Product> _productRepository;
+        private readonly IRepository<Category> _categoryRepository;
+        private readonly IRepository<Brand> _brandRepository;
 
-        public HomeViewModelService(IRepository<Product> productRepository)
+        public HomeViewModelService(IRepository<Product> productRepository, IRepository<Category> categoryRepository, IRepository<Brand> brandRepository)
         {
             _productRepository = productRepository;
+            _categoryRepository = categoryRepository;
+            _brandRepository = brandRepository;
         }
 
-        public async Task<HomeViewModel> GetHomeViewModelAsync()
+        public async Task<HomeViewModel> GetHomeViewModelAsync(int? categoryId, int? brandId, int page)
         {
-            var list = (await _productRepository.ListAllAsync())  // ProductViewModel Id = product.Id
-                .Select(x => new ProductViewModel()
+            var specProducts = new ProductsFilterSpecification(categoryId, brandId);  // tablet apple (sayılarını bulmak ıcın)
+            var specProductsPaginated = new ProductsFilterSpecification(categoryId, brandId, page, Constants.ITEMS_PER_PAGE);  // 3. sayfadaki apple'ın tabletleri
+
+            int totalProductsCount = await _productRepository.CountAsync(specProducts);  // toplam oge sayısı
+            var productsPaginated = await _productRepository.ListAsync(specProductsPaginated);
+
+            var pi = new PaginationInfoViewModel(totalProductsCount, page, Constants.ITEMS_PER_PAGE, productsPaginated.Count);
+
+            var list = productsPaginated.Select(x => new ProductViewModel()
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -30,7 +43,12 @@ namespace Web.Services
 
             var vm = new HomeViewModel()
             {
-                Products = list
+                PaginationInfo = pi,
+                Products = list,
+                Categories = (await _categoryRepository.ListAllAsync()).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList(), //SLI'de ilk text, sonra value
+                Brands = (await _brandRepository.ListAllAsync()).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToList(),
+                CategoryId = categoryId,
+                BrandId = brandId
             };
 
             return vm;
