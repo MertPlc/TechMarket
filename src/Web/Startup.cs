@@ -48,6 +48,8 @@ namespace Web
 
             services.AddScoped<IHomeViewModelService, HomeViewModelService>();  // Ne zaman IHomeViewModelService istenirse ona HomeViewModelService ver
 
+            services.AddScoped<IBasketViewModelService, BasketViewModelService>();
+
             services.AddControllersWithViews();
         }
 
