@@ -10,6 +10,7 @@ namespace Web.Controllers
     public class BasketController : Controller
     {
         private readonly IBasketViewModelService _basketViewModelService;
+
         public BasketController(IBasketViewModelService basketViewModelService)
         {
             _basketViewModelService = basketViewModelService;
@@ -26,6 +27,14 @@ namespace Web.Controllers
         {
             var basket = await _basketViewModelService.AddBasketItemAsync(productId);
             return Json(basket.Items.Count);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> EmptyBasket()
+        {
+            await _basketViewModelService.EmptyBasketAsync();
+            TempData["Message"] = "Your basket has been emptied successfully.";
+            return RedirectToAction("Index", "Basket");
         }
     }
 }

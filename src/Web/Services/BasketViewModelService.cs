@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Web.Interfaces;
+using Web.Models;
 
 namespace Web.Services
 {
@@ -16,18 +17,20 @@ namespace Web.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRepository<Basket> _basketRepository;
         private readonly IRepository<Product> _productRepository;
+        private readonly IBasketService _basketService;
 
         private string UserId => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
         private string AnonymousId => _httpContextAccessor.HttpContext.Request.Cookies[Constants.BASKET_COOKIENAME];
 
-        public BasketViewModelService(IHttpContextAccessor httpContextAccessor, IRepository<Basket> basketRepository, IRepository<Product> productRepository)
+        public BasketViewModelService(IHttpContextAccessor httpContextAccessor, IRepository<Basket> basketRepository, IRepository<Product> productRepository, IBasketService basketService)
         {
             _httpContextAccessor = httpContextAccessor;
             _basketRepository = basketRepository;
             _productRepository = productRepository;
+            _basketService = basketService;
         }
 
-        public async Task<Basket> AddBasketItemAsync(int productId, int quantity = 1)
+        public async Task<BasketViewModel> AddBasketItemAsync(int productId, int quantity = 1)
         {
             string buyerId = GetOrCreateBuyerId();
             Basket basket = await GetOrCreateBasketAsync(buyerId);
@@ -44,13 +47,13 @@ namespace Web.Services
             }
             await _basketRepository.UpdateAsync(basket);
 
-            return basket;
+            return ToBasketViewModel(basket);
         }
 
         private async Task<Basket> GetOrCreateBasketAsync(string buyerId)
         {
             var spec = new BasketWithItemsSpecification(buyerId);
-            var basket = await _basketRepository.FirstOrDefaultAsync(spec);  // sepet varsa buluyor yoksa yenı sepet olusturuyor
+            var basket = await _basketRepository.FirstOrDefaultAsync(spec);  // sepet varsa buluyor(ogeleriyle getiriyor) yoksa yenı sepet olusturuyor
             if (basket == null)
             {
                 basket = new Basket() { BuyerId = buyerId };
@@ -70,19 +73,52 @@ namespace Web.Services
             return newGuid;
         }
 
-        // todo: don't create a new basket or buyer id if not exists
-        public async Task<int> BasketItemsCountAsync()
+
+        public async Task<int> BasketItemsCountAsync()  // sepet olmadığında cookie olusturmayacak 
         {
-            string buyerId = GetOrCreateBuyerId();
-            Basket basket = await GetOrCreateBasketAsync(buyerId);
+            string buyerId = UserId ?? AnonymousId;
+            if (buyerId == null) return 0;
+
+            var spec = new BasketWithItemsSpecification(buyerId);
+            var basket = await _basketRepository.FirstOrDefaultAsync(spec);
+            if (basket == null) return 0;
+
             return basket.Items.Count;
         }
 
-        public async Task<Basket> GetBasketAsync()
+        public async Task<BasketViewModel> GetBasketAsync()
         {
             string buyerId = GetOrCreateBuyerId();
             Basket basket = await GetOrCreateBasketAsync(buyerId);
-            return basket;
+            return ToBasketViewModel(basket);
+        }
+
+        private BasketViewModel ToBasketViewModel(Basket basket)
+        {
+            var vm = new BasketViewModel()
+            {
+                TotalPrice = basket.Items.Sum(x => x.Quantity * x.Product.Price),
+                Items = basket.Items.Select(x => new BasketItemViewModel()
+                {
+                    Id = x.Id,
+                    ProductId = x.Product.Id,
+                    PictureUri = x.Product.PictureUri,
+                    Price = x.Product.Price,
+                    ProductName = x.Product.Name,
+                    Quantity = x.Quantity
+                }).ToList()
+            };
+
+            return vm;
+        }
+
+        public async Task EmptyBasketAsync()
+        {
+            var buyerId = UserId ?? AnonymousId;
+
+            if (buyerId == null) return;
+
+            await _basketService.EmptyBasketAsync(buyerId);
         }
     }
 }
