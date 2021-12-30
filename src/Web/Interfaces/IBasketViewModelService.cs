@@ -16,5 +16,7 @@ namespace Web.Interfaces
         Task<int> BasketItemsCountAsync();
 
         Task EmptyBasketAsync();
+
+        Task RemoveBasketItemAsync(int basketItemId);
     }
 }
