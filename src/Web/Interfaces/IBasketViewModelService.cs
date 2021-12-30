@@ -18,5 +18,8 @@ namespace Web.Interfaces
         Task EmptyBasketAsync();
 
         Task RemoveBasketItemAsync(int basketItemId);
+
+        Task UpdateBasketItemsAsync(int[] basketItemIds, int[] quantities);
+
     }
 }
