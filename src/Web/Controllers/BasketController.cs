@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,12 @@ namespace Web.Controllers
         {
             // todo: return BasketViewModel (including total price)
             return View(await _basketViewModelService.GetBasketAsync());
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Checkout()
+        {
+            return View();
         }
 
         [HttpPost]
