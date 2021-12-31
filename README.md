@@ -42,3 +42,4 @@ Update-Database -Context AppIdentityDbContext -s Web
 * https://www.npgsql.org/doc/types/basic.html
 * https://www.npgsql.org/efcore/
 * https://gist.github.com/yigith
+* https://getbootstrap.com/docs/4.3/examples/checkout/
