@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Web.Interfaces;
+using Web.Models;
 
 namespace Web.Controllers
 {
@@ -26,6 +28,21 @@ namespace Web.Controllers
         [Authorize]
         public async Task<IActionResult> Checkout()
         {
+            return View();
+        }
+
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Checkout(CheckoutViewModel vm, string basketJson)
+        {
+            if (basketJson != JsonSerializer.Serialize(await _basketViewModelService.GetBasketAsync()))
+                ModelState.AddModelError("", "Your basket has been changed recently. Please review yout basket before further process.");
+
+            if (ModelState.IsValid)
+            {
+
+                return RedirectToAction("OrderSuccess");
+            }
+
             return View();
         }
 
