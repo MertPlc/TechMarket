@@ -18,6 +18,13 @@ namespace ApplicationCore.Services
             _basketRepository = basketRepository;
         }
 
+        public async Task DeleteBasketAsync(string buyerId)
+        {
+            var specBasket = new BasketSpecification(buyerId);
+            var basket = await _basketRepository.FirstOrDefaultAsync(specBasket);
+            await _basketRepository.DeleteAsync(basket);
+        }
+
         public async Task EmptyBasketAsync(string buyerId)
         {
             var spec = new BasketWithItemsSpecification(buyerId);

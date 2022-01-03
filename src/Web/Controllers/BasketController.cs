@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ApplicationCore.Entities;
+using ApplicationCore.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -37,7 +39,16 @@ namespace Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                return RedirectToAction("OrderSuccess");
+                Order order = await _basketViewModelService.CreateOrderAsync(new Address()
+                {
+                    City = vm.City,
+                    Country = vm.Country,
+                    State = vm.State,
+                    Street = vm.Street,
+                    ZipCode = vm.ZipCode
+                });
+
+                return RedirectToAction("OrderSuccess", new { OrderId = order.Id });
             }
 
             return View();
@@ -72,6 +83,11 @@ namespace Web.Controllers
             await _basketViewModelService.UpdateBasketItemsAsync(basketItemIds, quantities);
             TempData["Message"] = "This item have been updated successfully.";
             return RedirectToAction("Index", "Basket");
+        }
+
+        public async Task<IActionResult> OrderSuccess(int orderId)
+        {
+            return View(orderId);
         }
     }
 }

@@ -49,6 +49,8 @@ namespace Web
 
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 
+            services.AddScoped<IOrderService, OrderService>();
+
             services.AddScoped<IBasketService, BasketService>();
 
             services.AddScoped<IHomeViewModelService, HomeViewModelService>();  // Ne zaman IHomeViewModelService istenirse ona HomeViewModelService ver

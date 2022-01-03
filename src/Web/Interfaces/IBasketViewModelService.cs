@@ -9,6 +9,8 @@ namespace Web.Interfaces
 {
     public interface IBasketViewModelService
     {
+        Task<Order> CreateOrderAsync(Address address);
+
         Task<BasketViewModel> GetBasketAsync();
 
         Task<BasketViewModel> AddBasketItemAsync(int productId, int quantity = 1);
