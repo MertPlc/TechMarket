@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Web.Filters;
 using Web.Interfaces;
 using Web.Middlewares;
 using Web.Services;
